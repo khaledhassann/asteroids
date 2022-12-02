@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Asteroids_github_ASU", "Asteroids_github_ASU\Asteroids_github_ASU.vcxproj", "{497CD8B8-5276-43D9-AEDE-66F6FA4DB551}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{497CD8B8-5276-43D9-AEDE-66F6FA4DB551}.Debug|x64.ActiveCfg = Debug|x64
+		{497CD8B8-5276-43D9-AEDE-66F6FA4DB551}.Debug|x64.Build.0 = Debug|x64
+		{497CD8B8-5276-43D9-AEDE-66F6FA4DB551}.Debug|x86.ActiveCfg = Debug|Win32
+		{497CD8B8-5276-43D9-AEDE-66F6FA4DB551}.Debug|x86.Build.0 = Debug|Win32
+		{497CD8B8-5276-43D9-AEDE-66F6FA4DB551}.Release|x64.ActiveCfg = Release|x64
+		{497CD8B8-5276-43D9-AEDE-66F6FA4DB551}.Release|x64.Build.0 = Release|x64
+		{497CD8B8-5276-43D9-AEDE-66F6FA4DB551}.Release|x86.ActiveCfg = Release|Win32
+		{497CD8B8-5276-43D9-AEDE-66F6FA4DB551}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E92F6CF4-998B-460E-9129-D0010B6C6A1F}
+	EndGlobalSection
+EndGlobal
