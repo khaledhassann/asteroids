@@ -3,7 +3,7 @@
 #include <istream>
 #include <iostream>
 using namespace std;
-typedef int ElementType;
+typedef int T;
 
 #pragma once
 class LinkedList {
@@ -12,10 +12,10 @@ private:
 	class Node {
 	public:
 		// ******** NODE DATA MEMBERS **********
-		ElementType data;	// data part of the node
+		T data;	// data part of the node
 		Node* next;			// node ptr that points to the next node
 		Node() : data(0), next(0) {}
-		Node(ElementType dataValue) : data(dataValue), next(0) {}
+		Node(T dataValue) : data(dataValue), next(0) {}
 	};
 	// ******* LINKED LIST DATA MEMBERS **********
 	typedef Node* NodePointer;
@@ -32,13 +32,13 @@ public:
 
 	void erase(int index); // erase the node at the given index
 
-	int search(ElementType dataVal);	// searches for a specific value
+	int search(T dataVal);	// searches for a specific value
 
 	//void insertFirst(ElementType newItem);		// this inserts an item into index 0 of the list
 
-	void insert(ElementType dataVal, int index); // inserting in any given index
+	void insert(T dataVal, int index); // inserting in any given index
 
-	void push_back(ElementType dataVal); // inserts element at last position of the list
+	void push_back(T dataVal); // inserts element at last position of the list
 
 	const LinkedList& operator = (const LinkedList& rightSide); // overriding the = operator
 

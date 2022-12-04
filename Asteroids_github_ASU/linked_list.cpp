@@ -4,34 +4,45 @@
 //#include "linked_list.h"
 using namespace std;
 
-template<typename ElementType>
-class LinkedList {
+template<typename T> class Node {
+
+private:
+	// ******** NODE DATA MEMBERS **********
+	T data;	// data part of the node
+	Node<T>* next;			// node ptr that points to the next node
+	template<typename U> friend class LinkedList;
+public:
+	Node() : data(0), next(0) {}
+	Node(T dataValue) : data(dataValue), next(0) {}
+	T & getData()
+	{
+		return data;
+	}
+	Node<T>* getNext()
+	{
+		return next;
+	}
+
+};
+
+template<typename T> class LinkedList {
 
 public:
-	class Node {
-	public:
-		// ******** NODE DATA MEMBERS **********
-		ElementType data;	// data part of the node
-		Node* next;			// node ptr that points to the next node
-		Node() : data(0), next(0) {}
-		Node(ElementType dataValue) : data(dataValue), next(0) {}
-	};
+	typedef Node<T>* NodePointer;
+private:
 	// ******* LINKED LIST DATA MEMBERS **********
-	typedef Node* NodePointer;
 	NodePointer first;		// this is the first ptr that points to the first node
 	int mySize;				// mySize = size of the list
 public:
-	template<typename ElementType>
 	LinkedList() : first(0), mySize(0) {} // this initializes the Linked Lists and sets the first = nullptr		
 
-	template<typename ElementType>
-	LinkedList(const LinkedList<ElementType>& origList)
+	LinkedList(const LinkedList<T>& origList)
 		: first(0), mySize(origList.mySize)
 	{
 
 		if (mySize == 0) return;
 		LinkedList::NodePointer origPtr, newPtr;	//origPtr is always one step ahead of newPtr
-		this->first = new Node(origList.first->data);
+		this->first = new Node<T>(origList.first->data);
 		newPtr = this->first;
 		origPtr = origList.first->next;
 		while (origPtr != nullptr) {
@@ -41,11 +52,9 @@ public:
 		}
 	}
 
-	template<typename ElementType>
 	~LinkedList()		//destructor
-
 	{
-		LinkedList<ElementType>::NodePointer prev = this->first, next;
+		LinkedList<T>::NodePointer prev = this->first, next;
 		while (prev != nullptr)
 		{
 			next = prev->next;
@@ -55,18 +64,22 @@ public:
 		this->first = nullptr;		// setting first to NULL and mySize to 0 after deleting all the nodes
 		mySize = 0;
 	}
-	
-	/*template<typename ElementType>*/
+	int getSize()
+	{
+		return mySize;
+	}
+
+	NodePointer getFirst()
+	{
+		return first;
+	}
+
 	bool isEmpty()		// this check to see if first == nullptr
 	{
 		return first == NULL;
 	}
 
-	Node* begin() {
-		return first;
-	}
 
-	template<typename ElementType>
 	void erase(int index)	// erase the node at the given index
 
 	{
@@ -77,7 +90,7 @@ public:
 		}
 
 		mySize--;
-		LinkedList<ElementType>::NodePointer nPtr, predPtr = this->first;
+		LinkedList<T>::NodePointer nPtr, predPtr = this->first;
 		if (index == 0)
 		{
 			nPtr = this->first;
@@ -96,12 +109,10 @@ public:
 		}
 	}
 
-	template<typename ElementType>
-	int search(ElementType dataVal)	// searches for a specific value
-
+	int search(T dataVal)	// searches for a specific value
 	{
 		int loc;
-		LinkedList<ElementType>::NodePointer nPtr = this->first;
+		LinkedList<T>::NodePointer nPtr = this->first;
 		for (loc = 0; loc < this->mySize; loc++)
 		{
 			if (nPtr->data == dataVal)
@@ -116,15 +127,8 @@ public:
 		return -1;
 	}
 
-	int getSize()
-	{
-		return mySize;
-	}
 
-	//void insertFirst(ElementType newItem);		// this inserts an item into index 0 of the list
-
-	template<typename ElementType>
-	void insert(ElementType dataVal, int index)
+	void insert(T dataVal, int index)
 
 	{
 		if (index < 0 || index > mySize)
@@ -134,7 +138,7 @@ public:
 		}
 
 		mySize++;
-		LinkedList<ElementType>::NodePointer newPtr = new Node(dataVal), predPtr = this->first;
+		LinkedList<T>::NodePointer newPtr = new Node(dataVal), predPtr = this->first;
 
 		if (index == 0)
 		{
@@ -150,11 +154,9 @@ public:
 			newPtr->next = predPtr->next;
 			predPtr->next = newPtr;
 		}
-	}// inserting in any given index
+	}											// inserting in any given index
 
-	template<typename ElementType>
-	void push_back(ElementType dataVal) // inserts element at last position of the list
-
+	void push_back(T dataVal)			// inserts element at last position of the list
 	{
 		NodePointer tempPtr = first, lastPtr;
 		lastPtr = tempPtr;
@@ -165,23 +167,21 @@ public:
 		}
 		if (isEmpty())
 		{
-			first = new Node(dataVal);
+			first = new Node<T>(dataVal);
 			lastPtr = first;
 			mySize++;
 			return;
 		}
 		else
 		{
-			NodePointer nPtr = new Node(dataVal);
+			NodePointer nPtr = new Node<T>(dataVal);
 			lastPtr->next = nPtr;
 			mySize++;
 		}
 
 	}
 
-	template<typename ElementType>
-	const LinkedList<ElementType>& operator = (const LinkedList<ElementType>& rightSide)
-
+	const LinkedList<T>& operator = (const LinkedList& rightSide)
 	{
 		this->mySize = rightSide.mySize;
 
@@ -194,8 +194,8 @@ public:
 		if (this != &rightSide)
 		{
 			this->~LinkedList();	// this deletes the old lists totally
-			LinkedList<ElementType>::NodePointer lhsPtr, rhsPtr;
-			this->first = new Node(rightSide.first->data);
+			LinkedList<T>::NodePointer lhsPtr, rhsPtr;
+			this->first = new Node<T>(rightSide.first->data);
 			lhsPtr = this->first;
 			rhsPtr = rightSide.first->next;
 
@@ -207,25 +207,23 @@ public:
 			}
 		}
 		return *this;
-	}// overriding the = operator
+	}		// overriding the = operator
 
-	template<typename ElementType>
 	void display(ostream& out) const
 	{
 
-		LinkedList<ElementType>::NodePointer temp = first;
+		LinkedList<T>::NodePointer temp = first;
 		while (temp != nullptr) {
 			out << temp->data << endl;
 			temp = temp->next;
 		}
 	}		// this traverses over the Linked Lists and couts it's elements
 
-	template<typename ElementType>
-	const LinkedList<ElementType> operator + (const LinkedList<ElementType>& rightSide)
+	const LinkedList<T> operator + (const LinkedList<T>& rightSide)
 
 	{
-		LinkedList<ElementType> l3;
-		LinkedList<ElementType>::NodePointer lPtr = this->first,
+		LinkedList<T> l3;
+		LinkedList<T>::NodePointer lPtr = this->first,
 			rPtr = rightSide.first;
 		if (this->mySize == rightSide.mySize)
 		{
@@ -271,24 +269,23 @@ public:
 		return l3;
 	}// overloading the + operator
 
-	template<typename ElementType>
-	bool operator > (const LinkedList<ElementType>& rightSide) // overloading the > (greater than operator)
+	bool operator > (const LinkedList<T>& rightSide) // overloading the > (greater than operator)
 	{
 		return this->mySize > rightSide.mySize;
-	} 
+	}
 
 };
 
-template<typename ElementType>
-ostream& operator<< (ostream& out, const LinkedList<ElementType>& aList)
+template<typename T>
+ostream& operator<< (ostream& out, const LinkedList<T>& aList)
 {	// passing the out and LL by reference
 
 	aList.display(out);
 	return out;
 }// this overloads the output operator
 
-template<typename ElementType>
-istream& operator >> (istream& in, LinkedList<ElementType>& aList)
+template<typename T>
+istream& operator >> (istream& in, LinkedList<T>& aList)
 
 {
 	int temp, ind;
