@@ -59,7 +59,7 @@ Last Updated: 30/08/2017
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include "linked_list.cpp"
+//#include "linked_list.cpp"
 using namespace std;
 
 #include "olcConsoleGameEngine.h"
@@ -234,39 +234,39 @@ protected:
 
 		
 		// Update Bullets
-		for (LinkedList<ElementType>::NodePointer i =vecBullets.begin(); i != 0; i = i->next)
+		for (LinkedList<sSpaceObject>::NodePointer i  = vecBullets.getFirst(); i != 0; i = i->getNext())
 		{	
-			auto& b = i->data;
+			auto& b = i->getData();
 			b.x += b.dx * fElapsedTime;
 			b.y += b.dy * fElapsedTime;
 			WrapCoordinates(b.x, b.y, b.x, b.y);
 			b.angle -= 1.0f * fElapsedTime;
 
 			// Check collision with asteroids
-			for (auto& a : vecAsteroids)
-			{
-				//if (IsPointInsideRectangle(a.x, a.y, a.x + a.nSize, a.y + a.nSize, b.x, b.y))
-				if (IsPointInsideCircle(a.x, a.y, a.nSize, b.x, b.y))
-				{
-					// Asteroid Hit - Remove bullet
-					// We've already updated the bullets, so force bullet to be offscreen
-					// so it is cleaned up by the removal algorithm. 
-					b.x = -100;
+			//for (auto& a : vecAsteroids)
+			//{
+			//	//if (IsPointInsideRectangle(a.x, a.y, a.x + a.nSize, a.y + a.nSize, b.x, b.y))
+			//	if (IsPointInsideCircle(a.x, a.y, a.nSize, b.x, b.y))
+			//	{
+			//		// Asteroid Hit - Remove bullet
+			//		// We've already updated the bullets, so force bullet to be offscreen
+			//		// so it is cleaned up by the removal algorithm. 
+			//		b.x = -100;
 
-					// Create child asteroids
-					if (a.nSize > 4)
-					{
-						float angle1 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
-						float angle2 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
-						newAsteroids.push_back({ (int)a.nSize >> 1 ,a.x, a.y, 10.0f * sinf(angle1), 10.0f * cosf(angle1), 0.0f });
-						newAsteroids.push_back({ (int)a.nSize >> 1 ,a.x, a.y, 10.0f * sinf(angle2), 10.0f * cosf(angle2), 0.0f });
-					}
+			//		// Create child asteroids
+			//		if (a.nSize > 4)
+			//		{
+			//			float angle1 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
+			//			float angle2 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
+			//			newAsteroids.push_back({ (int)a.nSize >> 1 ,a.x, a.y, 10.0f * sinf(angle1), 10.0f * cosf(angle1), 0.0f });
+			//			newAsteroids.push_back({ (int)a.nSize >> 1 ,a.x, a.y, 10.0f * sinf(angle2), 10.0f * cosf(angle2), 0.0f });
+			//		}
 
-					// Remove asteroid - Same approach as bullets
-					a.x = -100;
-					nScore += 100; // Small score increase for hitting asteroid
-				}
-			}
+			//		// Remove asteroid - Same approach as bullets
+			//		a.x = -100;
+			//		nScore += 100; // Small score increase for hitting asteroid
+			//	}
+			//}
 		}
 
 		// Append new asteroids to existing vector
@@ -303,16 +303,27 @@ protected:
 		}
 
 		// Remove bullets that have gone off screen
-		if (vecBullets.size() > 0)
+		if (vecBullets.getSize() > 0)
 		{
-			auto i = remove_if(vecBullets.begin(), vecBullets.end(), [&](sSpaceObject o) { return (o.x < 1 || o.y < 1 || o.x >= ScreenWidth() - 1 || o.y >= ScreenHeight() - 1); });
+			/*auto i = remove_if(vecBullets.begin(), vecBullets.end(), [&](sSpaceObject o) { return (o.x < 1 || o.y < 1 || o.x >= ScreenWidth() - 1 || o.y >= ScreenHeight() - 1); });
 			if (i != vecBullets.end())
-				vecBullets.erase(i);
+				vecBullets.erase(i);*/
+			int index = 0;
+			for (LinkedList<sSpaceObject>::NodePointer i = vecBullets.getFirst(); i != 0; i = i->getNext())
+			{
+ 				if (i->getData().x < 1 || i->getData().y < 1 || i->getData().x >= ScreenWidth() - 1 || i->getData().x >= ScreenHeight() - 1)
+				{
+					//vecBullets.erase(index);
+				}
+				index++;
+			}
 		}
-
 		// Draw Bullets
-		for (auto b : vecBullets)
+		for (LinkedList<sSpaceObject>::NodePointer i = vecBullets.getFirst(); i != 0; i = i->getNext())
+		{
+			auto& b = i->getData();
 			Draw(b.x, b.y);
+		}
 
 		// Draw Ship
 		DrawWireFrameModel(vecModelShip, player.x, player.y, player.angle);
