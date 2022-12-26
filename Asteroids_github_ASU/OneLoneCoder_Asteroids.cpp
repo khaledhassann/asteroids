@@ -1,111 +1,45 @@
-/*
-OneLoneCoder.com - Code-It-Yourself! Asteroids at the command prompt (quick and simple c++)
-"This one just kept growing..." - @Javidx9
-
-License
-~~~~~~~
-One Lone Coder Console Game Engine  Copyright (C) 2018  Javidx9
-This program comes with ABSOLUTELY NO WARRANTY.
-This is free software, and you are welcome to redistribute it
-under certain conditions; See license for details.
-Original works located at:
-https://www.github.com/onelonecoder
-https://www.onelonecoder.com
-https://www.youtube.com/javidx9
-GNU GPLv3
-https://github.com/OneLoneCoder/videos/blob/master/LICENSE
-
-From Javidx9 :)
-~~~~~~~~~~~~~~~
-Hello! Ultimately I don't care what you use this for. It's intended to be
-educational, and perhaps to the oddly minded - a little bit of fun.
-Please hack this, change it and use it in any way you see fit. You acknowledge
-that I am not responsible for anything bad that happens as a result of
-your actions. However this code is protected by GNU GPLv3, see the license in the
-github repo. This means you must attribute me if you use it. You can view this
-license here: https://github.com/OneLoneCoder/videos/blob/master/LICENSE
-Cheers!
-
-Background
-~~~~~~~~~~
-I needed a quick video to keep up with my upload schedule, and thought "oh asteroids
-must be simple", and indeed it was, but it was a bit rubbish, and didn't really
-offer anything educational, until I made the decision to ditch sprites and use
-vector models like the original game. This made the game considerably more sophisticated,
-has opened up new possibilities for the game engine, and just goes to show, jus 'cos
-it's old, doesn't mean it's irrelevant.
-
-I ended up with a demonstration of physics, wireframe graphics, 2D matrix transformations,
-toroidal space mapping and vector manipulation.
-
-Controls
-~~~~~~~~
-Left and Right arrow keys steer the ship. Up arrow is thrust. There is no reverse thrust.
-Space bar fires bullets. Get the highest score by surviving waves of asteroids.
-
-Author
-~~~~~~
-Twitter: @javidx9
-Blog: www.onelonecoder.com
-YouTube: www.youtube.com/javidx9
-
-Video:
-~~~~~~
-https://youtu.be/QgDR8LrRZhk
-
-Last Updated: 30/08/2017
-*/
-
 #include <iostream>
 #include <string>
 #include <algorithm>
-//#include "linked_list.cpp"
 using namespace std;
-
+#include "KeyMapClass.cpp"
 #include "olcConsoleGameEngine.h"
-#include "linked_list.cpp"
+#include "BinarySearchTree.cpp"
+#include <fstream>
+//#include "linked_list.cpp"
+#include "linked_list.h"
+#include "sSpaceObject.h"
 
+typedef sSpaceObject X;
 
 class OneLoneCoder_Asteroids : public olcConsoleGameEngine
 {
 public:
-	//class Node {
-	//public:
-	//	// ******** NODE DATA MEMBERS **********
-	//	ElementType data;	// data part of the node
-	//	Node* next;			// node ptr that points to the next node
-	//	Node() : data(0), next(0) {}
-	//	Node(ElementType dataValue) : data(dataValue), next(0) {}
-	//};
 	OneLoneCoder_Asteroids()
 	{
 		m_sAppName = L"Asteroids";
 	}
 
 private:
-	struct sSpaceObject
-	{
-		int nSize;
-		float x;
-		float y;
-		float dx;
-		float dy;
-		float angle;
-	};
 
-	vector<sSpaceObject> vecAsteroids;
-	LinkedList<sSpaceObject> vecBullets;
+	vector<X> vecAsteroids;
+	LinkedList vecBullets; // linked lists of type spaceObject ... fast adding and removing 
 	sSpaceObject player;
 	bool bDead = false;
 	int nScore = 0;
 
+	int highestScore = 0; //contains the highest score achieved in current session (adham)
+	BinarySearchTree bst; // stores all scores of current session
+	
+	keymap m; //map of keys
 	vector<pair<float, float>> vecModelShip;
 	vector<pair<float, float>> vecModelAsteroid;
 
 protected:
 	// Called by olcConsoleGameEngine
 	virtual bool OnUserCreate()
-	{
+	{	
+		
 		vecModelShip =
 		{
 			{ 0.0f, -5.0f},
@@ -145,8 +79,20 @@ protected:
 		vecAsteroids.push_back({ (int)16, 100.0f, 20.0f, -5.0f, 3.0f, 0.0f });
 
 		// Reset game
+		long txtscore = 0;
+		ifstream fin("hs.txt");
+		fin >> txtscore;
+		bst.insert(txtscore);
+
+		bst.insert(nScore);
 		bDead = false;
 		nScore = false;
+		highestScore = bst.getMax();
+		if (highestScore > txtscore) {
+			ofstream fout("hs.txt");
+			fout << highestScore;
+		}
+
 	}
 
 	// Implements "wrap around" for various in-game sytems
@@ -175,21 +121,23 @@ protected:
 
 	// Called by olcConsoleGameEngine
 	virtual bool OnUserUpdate(float fElapsedTime)
-	{
-		if (bDead)
+	{	if (bDead)
 			ResetGame();
 
 		// Clear Screen
 		Fill(0, 0, ScreenWidth(), ScreenHeight(), PIXEL_SOLID, 0);
 
+	
+		// listen to controls
+		m.listen();
 		// Steer Ship
-		if (m_keys[VK_LEFT].bHeld)
+		if (m.getLeft())
 			player.angle -= 5.0f * fElapsedTime;
-		if (m_keys[VK_RIGHT].bHeld)
+		if (m.getRight())
 			player.angle += 5.0f * fElapsedTime;
 
 		// Thrust? Apply ACCELERATION
-		if (m_keys[VK_UP].bHeld)
+		if (m.getUp())
 		{
 			// ACCELERATION changes VELOCITY (with respect to time)
 			player.dx += sin(player.angle) * 20.0f * fElapsedTime;
@@ -209,8 +157,11 @@ protected:
 				bDead = true; // Uh oh...
 
 		// Fire Bullet in direction of player
-		if (m_keys[VK_SPACE].bReleased)
+		if (m.getSpace()) {
 			vecBullets.push_back({ 0, player.x, player.y, 50.0f * sinf(player.angle), -50.0f * cosf(player.angle), 100.0f });
+			
+		}
+			
 
 		// Update and draw asteroids
 		for (auto& a : vecAsteroids)
@@ -232,10 +183,9 @@ protected:
 		// vector iterator in the for(auto)
 		vector<sSpaceObject> newAsteroids;
 
-		
 		// Update Bullets
-		for (LinkedList<sSpaceObject>::NodePointer i  = vecBullets.getFirst(); i != 0; i = i->getNext())
-		{	
+		for (LinkedList::NodePointer i = vecBullets.getFirst(); i != 0; i = i->getNext())
+		{
 			auto& b = i->getData();
 			b.x += b.dx * fElapsedTime;
 			b.y += b.dy * fElapsedTime;
@@ -243,30 +193,30 @@ protected:
 			b.angle -= 1.0f * fElapsedTime;
 
 			// Check collision with asteroids
-			//for (auto& a : vecAsteroids)
-			//{
-			//	//if (IsPointInsideRectangle(a.x, a.y, a.x + a.nSize, a.y + a.nSize, b.x, b.y))
-			//	if (IsPointInsideCircle(a.x, a.y, a.nSize, b.x, b.y))
-			//	{
-			//		// Asteroid Hit - Remove bullet
-			//		// We've already updated the bullets, so force bullet to be offscreen
-			//		// so it is cleaned up by the removal algorithm. 
-			//		b.x = -100;
+			for (auto& a : vecAsteroids)
+			{
+				//if (IsPointInsideRectangle(a.x, a.y, a.x + a.nSize, a.y + a.nSize, b.x, b.y))
+				if (IsPointInsideCircle(a.x, a.y, a.nSize, b.x, b.y))
+				{
+					// Asteroid Hit - Remove bullet
+					// We've already updated the bullets, so force bullet to be offscreen
+					// so it is cleaned up by the removal algorithm. 
+					b.x = -100;
 
-			//		// Create child asteroids
-			//		if (a.nSize > 4)
-			//		{
-			//			float angle1 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
-			//			float angle2 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
-			//			newAsteroids.push_back({ (int)a.nSize >> 1 ,a.x, a.y, 10.0f * sinf(angle1), 10.0f * cosf(angle1), 0.0f });
-			//			newAsteroids.push_back({ (int)a.nSize >> 1 ,a.x, a.y, 10.0f * sinf(angle2), 10.0f * cosf(angle2), 0.0f });
-			//		}
+					// Create child asteroids
+					if (a.nSize > 4)
+					{
+						float angle1 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
+						float angle2 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
+						newAsteroids.push_back({ (int)a.nSize >> 1 ,a.x, a.y, 10.0f * sinf(angle1), 10.0f * cosf(angle1), 0.0f });
+						newAsteroids.push_back({ (int)a.nSize >> 1 ,a.x, a.y, 10.0f * sinf(angle2), 10.0f * cosf(angle2), 0.0f });
+					}
 
-			//		// Remove asteroid - Same approach as bullets
-			//		a.x = -100;
-			//		nScore += 100; // Small score increase for hitting asteroid
-			//	}
-			//}
+					// Remove asteroid - Same approach as bullets
+					a.x = -100;
+					nScore += 100; // Small score increase for hitting asteroid
+				}
+			}
 		}
 
 		// Append new asteroids to existing vector
@@ -288,7 +238,7 @@ protected:
 			// Level Clear
 			nScore += 1000; // Large score for level progression
 			vecAsteroids.clear();
-			vecBullets.~LinkedList();
+			vecBullets.~LinkedList();  
 
 			// Add two new asteroids, but in a place where the player is not, we'll simply
 			// add them 90 degrees left and right to the player, their coordinates will
@@ -302,35 +252,48 @@ protected:
 											  10.0f * sinf(-player.angle), 10.0f * cosf(-player.angle), 0.0f });
 		}
 
-		// Remove bullets that have gone off screen
+		// Remove bullets that have gone off screen  TAKE A CLOSE LOOK
 		if (vecBullets.getSize() > 0)
 		{
-			/*auto i = remove_if(vecBullets.begin(), vecBullets.end(), [&](sSpaceObject o) { return (o.x < 1 || o.y < 1 || o.x >= ScreenWidth() - 1 || o.y >= ScreenHeight() - 1); });
-			if (i != vecBullets.end())
-				vecBullets.erase(i);*/
+			//auto i = remove_if(vecBullets.begin(), vecBullets.end(), [&](sSpaceObject o) { return (o.x < 1 || o.y < 1 || o.x >= ScreenWidth() - 1 || o.y >= ScreenHeight() - 1); });
+			//if (i != vecBullets.end())
+				//vecBullets.erase(i);
 			int index = 0;
-			for (LinkedList<sSpaceObject>::NodePointer i = vecBullets.getFirst(); i != 0; i = i->getNext())
+			vector<int> count;
+			for (LinkedList::NodePointer i = vecBullets.getFirst(); i != 0; i = i->getNext())
 			{
- 				if (i->getData().x < 1 || i->getData().y < 1 || i->getData().x >= ScreenWidth() - 1 || i->getData().x >= ScreenHeight() - 1)
+				if (i->getData().x < 1 || i->getData().y < 1 || i->getData().x >= ScreenWidth() - 1 || i->getData().y >= ScreenHeight() - 1)
 				{
-					//vecBullets.erase(index);
+					count.push_back(index);
+					
 				}
 				index++;
 			}
+			for (int i = 0; i < count.size(); i++) {
+				vecBullets.erase(count[i]);
+			}
+
 		}
+
 		// Draw Bullets
-		for (LinkedList<sSpaceObject>::NodePointer i = vecBullets.getFirst(); i != 0; i = i->getNext())
-		{
+		for (LinkedList::NodePointer i = vecBullets.getFirst(); i != 0; i = i->getNext()) {
 			auto& b = i->getData();
 			Draw(b.x, b.y);
 		}
+			
 
 		// Draw Ship
 		DrawWireFrameModel(vecModelShip, player.x, player.y, player.angle);
 
 		// Draw Score
 		DrawString(2, 2, L"SCORE: " + to_wstring(nScore));
+
+		//Draw Highest Score
+		DrawString(2, 4, L"HIGHEST SCORE: " + to_wstring(highestScore));
+
 		return true;
+
+		
 	}
 
 	void DrawWireFrameModel(const vector<pair<float, float>>& vecModelCoordinates, float x, float y, float r = 0.0f, float s = 1.0f, short col = FG_WHITE)
@@ -379,7 +342,7 @@ int main()
 {
 	// Use olcConsoleGameEngine derived app
 	OneLoneCoder_Asteroids game;
-	game.ConstructConsole(130, 70, 8, 8);
+	game.ConstructConsole(160, 100, 8, 8);
 	game.Start();
 	return 0;
 }
